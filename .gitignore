@@ -1,0 +1,36 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+# dependencies
+node_modules
+/.pnp
+.pnp.js
+/coverage
+resources
+dist
+dist-ssr
+*.local
+#misc
+.DS_Store
+.env
+.env.production
+.env.development
+.vscode/*
+!.vscode/extensions.json
+*.njsproj
+*.sw?
+.htaccess
+envDir
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+/filesTemplate

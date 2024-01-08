@@ -1,0 +1,35 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.4.1/schema.json",
+	"organizeImports": {
+		"enabled": false
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"correctness": {
+				"noUndeclaredVariables": "error",
+				"useHookAtTopLevel": "error",
+				"noUnusedVariables": "error"
+			},
+			"a11y": {
+				"useKeyWithClickEvents": "off",
+				"useKeyWithMouseEvents": "off"
+			}
+		}
+	},
+	"formatter": {
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineWidth": 120,
+		"formatWithErrors": true
+	},
+	"javascript": {
+		"formatter": {
+			"arrowParentheses": "asNeeded"
+		}
+	},
+	"files": {
+		"ignore": ["dist", ".vscode", "public"]
+	}
+}
