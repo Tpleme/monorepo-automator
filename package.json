@@ -1,6 +1,6 @@
 {
 	"name": "@tpleme/monorepo-automator",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"description": "Monorepo project auto generator",
 	"main": "index.js",
 	"devDependencies": {},
