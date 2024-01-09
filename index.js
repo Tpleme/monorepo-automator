@@ -7,6 +7,8 @@ const { fileSystemCompleter } = require("./utils/FileSystemCompleter");
 const { createDirectory, runCommandOnFolder } = require("./commands/Commands");
 const { startAnimation, stopAnimation, setMessage } = require("./utils/TerminalLoaderIndicator");
 
+const templateFilesPath = "../@tpleme/monorepo-automator/filesTemplate";
+
 const rl = readline.createInterface({
 	input: process.stdin,
 	output: process.stdout,
@@ -98,7 +100,11 @@ rl.question("❔ What is the name of the project?\n", name => {
 
 							setMessage(`Creating ${app.folder} - Updating vite config`);
 							//copy vite config template
-							await fsPromises.copyFile("./filesTemplate/vite.config.js", `${app.path}/vite.config.js`);
+							// await fsPromises.copyFile("./filesTemplate/vite.config.js", `${app.path}/vite.config.js`);
+							await fsPromises.copyFile(
+								`${templateFilesPath}/vite.config.js`,
+								`${app.path}/vite.config.js`,
+							);
 
 							setMessage(`Creating ${app.folder} - Setup env folder and files`);
 							//create envDir
@@ -134,8 +140,12 @@ rl.question("❔ What is the name of the project?\n", name => {
 
 					setMessage(`Setting up ${name} - Config biome, gitignore and readme files`);
 					//copy biome and gitignore, and create readme
-					await fsPromises.copyFile("./filesTemplate/biome.json", `${path}${name}/biome.json`);
-					await fsPromises.copyFile("./filesTemplate/.gitignore", `${path}${name}/.gitignore`);
+					// await fsPromises.copyFile("./filesTemplate/biome.json", `${path}${name}/biome.json`);
+					// await fsPromises.copyFile("./filesTemplate/.gitignore", `${path}${name}/.gitignore`);
+
+					await fsPromises.copyFile(`${templateFilesPath}/biome.json`, `${path}${name}/biome.json`);
+					await fsPromises.copyFile(`${templateFilesPath}/.gitignore`, `${path}${name}/.gitignore`);
+
 					await fsPromises.writeFile(`${path}${name}/README.md`, `#${name}`, "utf-8");
 
 					setMessage(`Setting up ${name} - Updating biome schema`);
