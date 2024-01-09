@@ -1,15 +1,20 @@
 {
-  "name": "asdasd",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@biomejs/biome": "1.5.0"
-  }
+	"name": "@tpleme/monorepo-automator",
+	"version": "1.0.2",
+	"description": "Monorepo project auto generator",
+	"main": "index.js",
+	"devDependencies": {},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Tpleme/project_init.git"
+	},
+	"author": "Tpleme",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/Tpleme/project_init/issues"
+	},
+	"homepage": "https://github.com/Tpleme/project_init#readme"
 }
