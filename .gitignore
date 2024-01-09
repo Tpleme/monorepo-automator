@@ -33,3 +33,4 @@ envDir
 *.njsproj
 *.sln
 *.sw?
+lib/

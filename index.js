@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#! /usr/bin/env node
 
 const readline = require("readline");
 const fs = require("fs");
@@ -7,7 +7,23 @@ const { fileSystemCompleter } = require("./utils/FileSystemCompleter");
 const { createDirectory, runCommandOnFolder } = require("./commands/Commands");
 const { startAnimation, stopAnimation, setMessage } = require("./utils/TerminalLoaderIndicator");
 
-const templateFilesPath = "../@tpleme/monorepo-automator/filesTemplate";
+const { program } = require("commander");
+
+program
+	.command("create [name]")
+	.description("Create new monorepo project with. Ex: create my-monorepo-project")
+	.option("-p, --path [PATH]", "Set the path for the new project")
+	.action((cmd, opt) => console.log(cmd, opt));
+
+program
+	.command("add <app>")
+	.description("Add new app to project. Ex: add server")
+	.option("-e, --env [ENV]", "Set development environment to the app. Ex: add client -e vite")
+	.action((cmd, opt) => console.log(cmd, opt));
+
+program.parse();
+
+//TODO: definir as funçoes create e add em ficheiros separados. O ficheiro index.js fica so com os comandos do commander
 
 const rl = readline.createInterface({
 	input: process.stdin,
@@ -100,11 +116,7 @@ rl.question("❔ What is the name of the project?\n", name => {
 
 							setMessage(`Creating ${app.folder} - Updating vite config`);
 							//copy vite config template
-							// await fsPromises.copyFile("./filesTemplate/vite.config.js", `${app.path}/vite.config.js`);
-							await fsPromises.copyFile(
-								`${templateFilesPath}/vite.config.js`,
-								`${app.path}/vite.config.js`,
-							);
+							await fsPromises.copyFile("./filesTemplate/vite.config.js", `${app.path}/vite.config.js`);
 
 							setMessage(`Creating ${app.folder} - Setup env folder and files`);
 							//create envDir
@@ -140,11 +152,8 @@ rl.question("❔ What is the name of the project?\n", name => {
 
 					setMessage(`Setting up ${name} - Config biome, gitignore and readme files`);
 					//copy biome and gitignore, and create readme
-					// await fsPromises.copyFile("./filesTemplate/biome.json", `${path}${name}/biome.json`);
-					// await fsPromises.copyFile("./filesTemplate/.gitignore", `${path}${name}/.gitignore`);
-
-					await fsPromises.copyFile(`${templateFilesPath}/biome.json`, `${path}${name}/biome.json`);
-					await fsPromises.copyFile(`${templateFilesPath}/.gitignore`, `${path}${name}/.gitignore`);
+					await fsPromises.copyFile("./filesTemplate/biome.json", `${path}${name}/biome.json`);
+					await fsPromises.copyFile("./filesTemplate/.gitignore", `${path}${name}/.gitignore`);
 
 					await fsPromises.writeFile(`${path}${name}/README.md`, `#${name}`, "utf-8");
 
