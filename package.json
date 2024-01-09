@@ -5,6 +5,7 @@
 	"main": "index.js",
 	"devDependencies": {},
 	"scripts": {
+		"create": "node index.js",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"repository": {
@@ -16,5 +17,6 @@
 	"bugs": {
 		"url": "https://github.com/Tpleme/project_init/issues"
 	},
-	"homepage": "https://github.com/Tpleme/project_init#readme"
+	"homepage": "https://github.com/Tpleme/project_init#readme",
+	"bin": "./index.js"
 }

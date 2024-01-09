@@ -13,3 +13,13 @@ Monorepo Automator is a powerful tool designed to streamline the process of sett
 - **Linting and Formatting with Biome:** Ensure code consistency and quality across your entire codebase. Monorepo Automator integrates with Biome to provide comprehensive linting and formatting configurations.
 
 - **Package.json Configuration:** Save time on package.json setup. Monorepo Automator takes care of configuring all necessary package.json files, so you can focus on coding instead of project management.
+
+## Getting Started:
+
+1. Create a new monorepo project:
+   ```bash
+   npx @tpleme/monorepo-automator
+
+2. Follow the on-screen prompts.
+
+3. Profit!!!
