@@ -182,7 +182,7 @@ rl.question("❔ What is the name of the project?\n", name => {
 });
 
 const handleError = (err, path) => {
-	console.log(`❌ ${err}`);
+	console.log(`\n❌ ${err}`);
 	if (path) {
 		fs.rmSync(path, { recursive: true, force: true });
 	}
