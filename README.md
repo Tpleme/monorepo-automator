@@ -7,6 +7,9 @@
 
 </p>
 
+
+## Note: This package is not currently available at npm
+
 # Monorepo Automator
 
 **Create Monorepo Projects with Ease**
