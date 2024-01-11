@@ -1,3 +1,5 @@
+const chalk = require("chalk");
+
 let loader;
 let message = "loading";
 
@@ -5,7 +7,7 @@ const startAnimation = () => {
 	const P = ["⣾", "⣷", "⣯", "⣟", "⡿", "⢿", "⣻", "⣽"];
 	let x = 0;
 	loader = setInterval(() => {
-		process.stdout.write(`\r${P[x++]} ${message}`);
+		process.stdout.write(chalk.white.bold(`\r${P[x++]} ${message}`));
 		x &= 7;
 	}, 100);
 };

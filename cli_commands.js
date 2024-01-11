@@ -22,7 +22,6 @@ const runCommandOnFolder = async (folder, command) => {
 
 		cmd.stdout.on("data", data => {
 			resolve(data);
-			// console.log(`stdout: ${data}`);
 		});
 
 		cmd.stderr.on("data", data => {
@@ -35,9 +34,9 @@ const runCommandOnFolder = async (folder, command) => {
 			console.log(`error: ${error.message}`);
 		});
 
-		cmd.on("close", code => {
-			// console.log(`child process exited with code ${code}`);
-		});
+		// cmd.on("close", code => {
+		// 	console.log(`child process exited with code ${code}`);
+		// });
 	});
 };
 

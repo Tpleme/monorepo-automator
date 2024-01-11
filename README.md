@@ -1,3 +1,12 @@
+<p align='center'>
+   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/tpleme/monorepo-automator">
+   <img alt="GitHub License" src="https://img.shields.io/npm/dm/%40tpleme%2Fmonorepo-automator">
+   <img alt="GitHub License" src="https://img.shields.io/github/license/tpleme/monorepo-automator">
+   <img alt="npm bundle size" src="https://img.shields.io/bundlephobia/min/monorepo-automator">
+   <img alt="NPM Version" src="https://img.shields.io/npm/v/monorepo-automator">
+
+</p>
+
 # Monorepo Automator
 
 **Create Monorepo Projects with Ease**
@@ -16,10 +25,49 @@ Monorepo Automator is a powerful tool designed to streamline the process of sett
 
 ## Getting Started:
 
-1. Create a new monorepo project:
-   ```bash
-   npx @tpleme/monorepo-automator
+### Installing
+Install monorepo-automator globally:
+```bash
+npm install -g @tpleme/monorepo-automator
+```
+You can also use monorepo-automator without installation, just make sure you have npx installed (npx is shipped by default with npm since 5.2.0)
+```bash
+npx @tpleme/monorepo-automator create
+```
 
-2. Follow the on-screen prompts.
+### Usage
+You can run this script anywhere, it will ask for a path to your new project.
 
-3. Profit!!!
+1. Create a monorepo project:
+```bash
+monorepo-automator create
+```
+2. Follow the prompts;
+
+## Commands
+- ### Create
+```bash
+monorepo-automator create [name] [options]
+```
+Create commands helps you create a monorepo project with all the folders, configurations, linting, etc... You can provide a name and options, such as a path using flag `-p`, but this is not mandatory.
+
+Option | Description
+---|---
+`-p` or `--path` | Provide path where you want to create the monorepo project
+
+##
+- ### Add
+```bash
+monorepo-automator add <name> [options]
+```
+Add a new app to you already existent monorepo project, this command requires you to provide a name for this app. You can also provide a development environment with the flag `-e`. (Currently only supporting vite)
+
+Option | Description
+---|---
+`-e` or `--env` | Provide a development environment to the new app, ex: vite 
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+MIT

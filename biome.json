@@ -16,7 +16,8 @@
 				"useKeyWithClickEvents": "off",
 				"useKeyWithMouseEvents": "off"
 			}
-		}
+		},
+		"ignore": ["test/*"]
 	},
 	"formatter": {
 		"indentStyle": "tab",
