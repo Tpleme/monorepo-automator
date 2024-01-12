@@ -52,7 +52,7 @@ monorepo-automator create
 ```bash
 monorepo-automator create [name] [options]
 ```
-Create commands helps you create a monorepo project with all the folders, configurations, linting, etc... You can provide a name and options, such as a path using flag `-p`, but this is not mandatory.
+`Create` commands helps you create a monorepo project with all the folders, configurations, linting, etc... You can provide a name and options, such as a path using flag `-p`, but this is not mandatory.
 
 Option | Description
 ---|---
@@ -63,7 +63,7 @@ Option | Description
 ```bash
 monorepo-automator add <name> [options]
 ```
-Add a new app to you already existent monorepo project, this command requires you to provide a name for this app. You can also provide a development environment with the flag `-e`. (Currently only supporting vite)
+`Add` a new app to you already existent monorepo project, this command requires you to provide a name for this app. You can also provide a development environment with the flag `-e`. (Currently only supporting vite)
 
 Option | Description
 ---|---
@@ -71,6 +71,14 @@ Option | Description
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+
+<a href="https://github.com/Tpleme">
+  <img style='border-radius:50%' src="https://avatars.githubusercontent.com/u/72796924?s=50&v=4">
+</a>
 
 ## License
 MIT
