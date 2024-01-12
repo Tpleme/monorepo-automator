@@ -1,7 +1,7 @@
-const { parse, sep } = require("path");
-const { promises: fsPromises } = require("fs");
+import { parse, sep } from "path";
+import { promises as fsPromises } from "fs";
 
-function fileSystemCompleter(line, callback) {
+export default function fileSystemCompleter(line, callback) {
 	let { dir, base } = parse(line);
 
 	fsPromises
@@ -25,7 +25,3 @@ function fileSystemCompleter(line, callback) {
 		})
 		.catch(() => callback(null, [[], line]));
 }
-
-module.exports = {
-	fileSystemCompleter,
-};

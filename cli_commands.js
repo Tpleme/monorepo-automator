@@ -1,6 +1,6 @@
-const { exec, spawn } = require("child_process");
+import { exec, spawn } from "child_process";
 
-const createDirectory = async path => {
+export const createDirectory = async path => {
 	return new Promise((resolve, reject) => {
 		exec(`mkdir ${path}`, (error, _stdout, stderr) => {
 			if (error) {
@@ -16,7 +16,7 @@ const createDirectory = async path => {
 	});
 };
 
-const runCommandOnFolder = async (folder, command) => {
+export const runCommandOnFolder = async (folder, command) => {
 	return new Promise((resolve, reject) => {
 		const cmd = spawn(`${command}`, { shell: true, detached: true, cwd: folder });
 
@@ -38,9 +38,4 @@ const runCommandOnFolder = async (folder, command) => {
 		// 	console.log(`child process exited with code ${code}`);
 		// });
 	});
-};
-
-module.exports = {
-	createDirectory,
-	runCommandOnFolder,
 };

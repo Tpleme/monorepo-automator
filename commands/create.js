@@ -1,60 +1,49 @@
-const readline = require("readline");
-const fs = require("fs");
-const { promises: fsPromises } = require("fs");
-const { fileSystemCompleter } = require("../utils/FileSystemCompleter");
-const { createDirectory, runCommandOnFolder } = require("../cli_commands");
-const { startAnimation, stopAnimation, setMessage } = require("../utils/TerminalLoaderIndicator");
-const chalk = require("chalk");
-const { dirname } = require("path");
+import { existsSync, rmSync } from "fs";
+import { promisifyQuestion, rl, list } from "../utils/PromisifyInput.js";
+import { promises as fsPromises } from "fs";
+import { createDirectory, runCommandOnFolder } from "../cli_commands.js";
+import { startAnimation, stopAnimation, setMessage } from "../utils/TerminalLoaderIndicator.js";
+import chalk from "chalk";
 
-const appDir = dirname(require.main.filename);
-
-const questionStyle = chalk.cyan.bold;
 const okStyle = chalk.green.bold;
 const errorStyle = chalk.red.bold;
 
-const rl = readline.createInterface({
-	input: process.stdin,
-	output: process.stdout,
-	completer: fileSystemCompleter,
-});
-
-const promisifyQuestion = question => {
-	return new Promise(resolve => rl.question(questionStyle(question), res => resolve(res)));
-};
-
-const create = async (cmd, opts) => {
+export default async (cmd, opts, appDir) => {
 	let projectName = cmd ?? null;
 	let projectPath = opts.path ?? null;
 
-	if (!projectName) {
-		await promisifyQuestion("❔ What is the name of the project?\n").then(name => {
-			projectName = name;
-		});
-	}
-
-	projectName = projectName.replace(/\s/g, "_");
-
-	const validName = new RegExp(/^[a-zA-Z0-9_-]+$/).test(projectName);
-	if (!validName) {
-		handleError("Invalid project name. Project name must be a valid folder name format.");
-	}
-
-	if (!projectPath) {
-		await promisifyQuestion(
-			`❔ Where do you want to create the project ${projectName}? (leave empty for current path)\n`,
-		).then(path => {
-			if (path === "." || path.length === 0) {
-				projectPath = "./";
-			} else {
-				projectPath = path;
-			}
-		});
-	}
-
 	try {
-		if (!fs.existsSync(projectPath)) {
+		if (!projectName) {
+			await promisifyQuestion("❔ What is the name of the project?\n").then(name => {
+				projectName = name;
+			});
+		}
+
+		projectName = projectName.replace(/\s/g, "_");
+
+		const validName = new RegExp(/^[a-zA-Z0-9_-]+$/).test(projectName);
+		if (!validName) {
+			handleError("Invalid project name. Project name must be a valid folder name format.");
+		}
+
+		if (!projectPath) {
+			await promisifyQuestion(
+				`❔ Where do you want to create the project ${projectName}? (leave empty for current path)\n`,
+			).then(path => {
+				if (path === "." || path.length === 0) {
+					projectPath = "./";
+				} else {
+					projectPath = path;
+				}
+			});
+		}
+
+		if (!existsSync(projectPath)) {
 			handleError(`${projectPath} path does not exists`);
+		}
+
+		if (existsSync(`${projectPath}${projectName}`)) {
+			handleError(`Folder ${projectName} already exists on the ${projectPath} folder.`);
 		}
 
 		await createDirectory(`${projectPath}${projectName}`);
@@ -67,35 +56,49 @@ const create = async (cmd, opts) => {
 		return;
 	}
 
-	const folders = await promisifyQuestion(
-		"❔ Which subfolders should this project have? (ex: client(vite) backoffice(vite) server) (separate by space)\n",
-	);
-
-	const validFolders = new RegExp(/^([a-zA-Z]+(?:-[a-zA-Z]+)?(\([a-zA-Z]+(?:-[a-zA-Z]+)?\))?\s*)*$/).test(folders);
-
-	if (!validFolders) {
-		handleError(
-			"Invalid subfolders format.\nSubfolder names must not contain special characters or numbers.\nAll subfolders must be separated by a space and can be followed by and development environment inside parenthesis. ",
-			`${projectPath}${projectName}`,
+	try {
+		const folders = await promisifyQuestion(
+			"❔ Which subfolders should this project have? (ex: client(vite) backoffice(vite) server) (separate by space)\n",
 		);
-	}
 
-	const foldersArray = folders.split(" ");
-	startAnimation();
+		//TODO: sanitize input
+		// const validFolders = new RegExp(/^([a-zA-Z]+(?:-[a-zA-Z]+)?(\([a-zA-Z]+(?:-[a-zA-Z]+)?\))?\s*)*$/).test(
+		// 	folders,
+		// );
 
-	const mappedFolders = foldersArray.map((el, index) => ({
-		folder: el.split("(")[0],
-		devEnv: el.split("(")[1]?.replace(")", ""),
-		path: `${projectPath}${projectName}/${el.split("(")[0]}`,
-		port: 3000 + index,
-	}));
+		// if (!validFolders) {
+		// 	handleError(
+		// 		"Invalid subfolders format.\nSubfolder names must not contain special characters or numbers.\nAll subfolders must be separated by a space and can be followed by and development environment inside parenthesis. ",
+		// 		`${projectPath}${projectName}`,
+		// 	);
+		// }
 
-	for (let i = 0; i < mappedFolders.length; i++) {
-		const app = mappedFolders[i];
+		const apps = folders.split(",").map((el, index) => ({
+			name: el,
+			path: `${projectPath}${projectName}/${el}`,
+			port: 3000 + index,
+		}));
 
-		setMessage(`Creating ${app.folder}`);
+		for (let i = 0; i <= apps.length - 1; i++) {
+			console.log(i);
+			const app = apps[i];
 
-		try {
+			await list({
+				name: "devEnv",
+				message: `❔ Do you want to install any development environment on ${app.name}?`,
+				choices: ["vite", "none"],
+			}).then(res => {
+				app.devEnv = res.devEnv;
+			});
+		}
+
+		startAnimation();
+
+		for (let i = 0; i < apps.length; i++) {
+			const app = apps[i];
+
+			setMessage(`Creating ${app.name}`);
+
 			if (app.devEnv) {
 				if (app.devEnv !== "vite") {
 					handleError(
@@ -105,23 +108,23 @@ const create = async (cmd, opts) => {
 					return;
 				}
 
-				setMessage(`Creating ${app.folder} - Installing and initializing vite`);
+				setMessage(`Creating ${app.name} - Installing and initializing vite`);
 				//init vite
 				await runCommandOnFolder(
 					`${projectPath}${projectName}`,
-					`npm create vite@latest ${app.folder} -- --template react`,
+					`npm create vite@latest ${app.name} -- --template react`,
 				);
 
 				//install dependencies
 				await runCommandOnFolder(app.path, "npm install");
 
-				setMessage(`Creating ${app.folder} - Removing unnecessary files`);
+				setMessage(`Creating ${app.name} - Removing unnecessary files`);
 				//remove eslintrc, README and gitignore
 				await fsPromises.rm(`${app.path}/.eslintrc.cjs`);
 				await fsPromises.rm(`${app.path}/.gitignore`);
 				await fsPromises.rm(`${app.path}/README.md`);
 
-				setMessage(`Creating ${app.folder} - Setting package.json scripts`);
+				setMessage(`Creating ${app.name} - Setting package.json scripts`);
 				//change package.json scripts, vite config and create envDir
 				const contents = await fsPromises.readFile(`${app.path}/package.json`, "utf-8");
 				const replacement = contents
@@ -138,11 +141,11 @@ const create = async (cmd, opts) => {
 				await fsPromises.writeFile(`${app.path}/package.json`, replacement);
 
 				//copy vite config template
-				setMessage(`Creating ${app.folder} - Updating vite config`);
+				setMessage(`Creating ${app.name} - Updating vite config`);
 				await fsPromises.copyFile(`${appDir}/filesTemplate/vite.config.js`, `${app.path}/vite.config.js`);
 
 				//create envDir
-				setMessage(`Creating ${app.folder} - Setup env folder and files`);
+				setMessage(`Creating ${app.name} - Setup env folder and files`);
 				await createDirectory(`${app.path}/envDir`);
 
 				//create env files
@@ -153,24 +156,19 @@ const create = async (cmd, opts) => {
 			}
 
 			//create server folder
-			setMessage(`Creating ${app.folder}`);
+			setMessage(`Creating ${app.name}`);
 			await createDirectory(`${app.path}`);
 
 			//init npm
-			setMessage(`Creating ${app.folder} - Initializing npm`);
+			setMessage(`Creating ${app.name} - Initializing npm`);
 			await runCommandOnFolder(`${app.path}`, "npm init -y");
 
 			//create index.js file
-			await fsPromises.writeFile(`${app.path}/index.js`, `//${app.folder} entry file`, "utf-8");
-		} catch (err) {
-			handleError(err, `${projectPath}${projectName}`);
-			return;
+			await fsPromises.writeFile(`${app.path}/index.js`, `//${app.name} entry file`, "utf-8");
 		}
-	}
 
-	//install biome
-	setMessage(`Setting up ${projectName} - Install and initialize Biomejs`);
-	try {
+		//install biome
+		setMessage(`Setting up ${projectName} - Install and initialize Biomejs`);
 		await runCommandOnFolder(`${projectPath}${projectName}`, "npm install --save-dev --save-exact @biomejs/biome");
 
 		//copy biome and gitignore, and create readme
@@ -183,26 +181,21 @@ const create = async (cmd, opts) => {
 		//Update biome schema
 		setMessage(`Setting up ${projectName} - Updating biome schema`);
 		await runCommandOnFolder(`${projectPath}${projectName}`, "npx @biomejs/biome migrate --write");
-	} catch (err) {
-		handleError(err, `${projectPath}${projectName}`);
-		return;
-	}
 
-	setMessage(`Setting up ${projectName} - Creating package.json scripts`);
-	//config scripts on parent package.json
-	const appsRunScripts = mappedFolders.map(el => {
-		if (el.devEnv) return `"${el.folder}": "cd ${el.folder} && npm run dev",`;
-		return `"${el.folder}": "cd ${el.folder} && node index.js",`;
-	});
+		setMessage(`Setting up ${projectName} - Creating package.json scripts`);
+		//config scripts on parent package.json
+		const appsRunScripts = apps.map(el => {
+			if (el.devEnv) return `"${el.name}": "cd ${el.name} && npm run dev",`;
+			return `"${el.name}": "cd ${el.name} && node index.js",`;
+		});
 
-	const parentScripts = [
-		...appsRunScripts,
-		`"lint": "npx @biomejs/biome lint .",`,
-		`"format": "npx @biomejs/biome format . --write",`,
-		`"check": "npx @biomejs/biome check ."`,
-	];
+		const parentScripts = [
+			...appsRunScripts,
+			`"lint": "npx @biomejs/biome lint .",`,
+			`"format": "npx @biomejs/biome format . --write",`,
+			`"check": "npx @biomejs/biome check ."`,
+		];
 
-	try {
 		const contents = await fsPromises.readFile(`${projectPath}${projectName}/package.json`, "utf-8");
 		const replacement = contents.replace(
 			/"test": "echo \\"Error: no test specified\\" && exit 1"/,
@@ -223,16 +216,8 @@ const create = async (cmd, opts) => {
 const handleError = (err, path) => {
 	console.log(errorStyle(`\n❌ ${err}`));
 	if (path) {
-		fs.rmSync(path, { recursive: true, force: true });
+		rmSync(path, { recursive: true, force: true });
 	}
 
 	rl.close();
-};
-
-rl.on("close", () => {
-	process.exit(0);
-});
-
-module.exports = {
-	create,
 };

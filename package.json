@@ -1,6 +1,7 @@
 {
 	"name": "@tpleme/monorepo-automator",
 	"version": "0.1.5",
+	"type": "module",
 	"keywords": [
 		"monorepo",
 		"boilerplate"
@@ -24,8 +25,9 @@
 	},
 	"homepage": "https://github.com/Tpleme/monorepo-automator#readme",
 	"dependencies": {
-		"chalk": "^4.1.2",
-		"commander": "^11.1.0"
+		"chalk": "^5.3.0",
+		"commander": "^11.1.0",
+		"inquirer": "^9.2.12"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.5.0",

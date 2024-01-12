@@ -1,9 +1,9 @@
-const chalk = require("chalk");
+import chalk from "chalk";
 
 let loader;
 let message = "loading";
 
-const startAnimation = () => {
+export const startAnimation = () => {
 	const P = ["⣾", "⣷", "⣯", "⣟", "⡿", "⢿", "⣻", "⣽"];
 	let x = 0;
 	loader = setInterval(() => {
@@ -12,17 +12,11 @@ const startAnimation = () => {
 	}, 100);
 };
 
-const stopAnimation = () => {
+export const stopAnimation = () => {
 	process.stdout.clearLine();
 	clearInterval(loader);
 };
 
-const setMessage = msg => {
+export const setMessage = msg => {
 	message = msg;
-};
-
-module.exports = {
-	startAnimation,
-	stopAnimation,
-	setMessage,
 };
