@@ -1,0 +1,20 @@
+name: Code quality
+run-name: Checking code quality from ${{ github.actor }} pushto master.
+
+on:
+  push:
+    branches:
+        - master
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v1
+        with:
+          version: latest
+      - name: Run Biome
+        run: biome ci .

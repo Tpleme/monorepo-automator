@@ -1,9 +1,12 @@
 <p align='center'>
-   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/tpleme/monorepo-automator">
-   <img alt="GitHub License" src="https://img.shields.io/npm/dm/%40tpleme%2Fmonorepo-automator">
-   <img alt="GitHub License" src="https://img.shields.io/github/license/tpleme/monorepo-automator">
-   <img alt="npm bundle size" src="https://img.shields.io/bundlephobia/min/monorepo-automator">
-   <img alt="NPM Version" src="https://img.shields.io/npm/v/monorepo-automator">
+   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/tpleme/monorepo-automator?logo=github">
+   <img alt="Npm Downloads" src="https://img.shields.io/npm/dm/%40tpleme%2Fmonorepo-automator?logo=npm">
+   <img alt="GitHub License" src="https://img.shields.io/github/license/tpleme/monorepo-automator?logo=github">
+   <img alt="npm bundle size" src="https://img.shields.io/bundlephobia/min/monorepo-automator?logo=npm">
+   <img alt="NPM Version" src="https://img.shields.io/npm/v/monorepo-automator?logo=npm">
+  <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/tpleme/monorepo-automator/code-quality?logo=github">
+<img alt="NPM Downloads" src="https://img.shields.io/npm/dt/%40tpleme%2Fmonorepo-automator?logo=npm">
+
 
 </p>
 
