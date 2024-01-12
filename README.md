@@ -10,9 +10,6 @@
 
 </p>
 
-
-## Note: This package is not currently available at npm
-
 # Monorepo Automator
 
 **Create Monorepo Projects with Ease**
@@ -61,6 +58,7 @@ Option | Description
 ---|---
 `-p` or `--path` | Provide path where you want to create the monorepo project
 
+<!--
 ##
 - ### Add
 ```bash
@@ -71,13 +69,14 @@ monorepo-automator add <name> [options]
 Option | Description
 ---|---
 `-e` or `--env` | Provide a development environment to the new app, ex: vite 
-
+-->
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Check the contributor guidelines [here](CONTRIBUTING.md).
 
 ## Code Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+This project exists thanks to all the people who contribute.
 
 <a href="https://github.com/Tpleme">
   <img style='border-radius:50%' src="https://avatars.githubusercontent.com/u/72796924?s=50&v=4">
