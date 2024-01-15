@@ -58,20 +58,8 @@ export default async (cmd, opts, appDir) => {
 
 	try {
 		const folders = await promisifyQuestion(
-			"❔ Which subfolders should this project have? (ex: client(vite) backoffice(vite) server) (separate by space)\n",
+			"❔ Which apps should this project have? (ex: client,backoffice,server) (separate by comma)\n",
 		);
-
-		//TODO: sanitize input
-		// const validFolders = new RegExp(/^([a-zA-Z]+(?:-[a-zA-Z]+)?(\([a-zA-Z]+(?:-[a-zA-Z]+)?\))?\s*)*$/).test(
-		// 	folders,
-		// );
-
-		// if (!validFolders) {
-		// 	handleError(
-		// 		"Invalid subfolders format.\nSubfolder names must not contain special characters or numbers.\nAll subfolders must be separated by a space and can be followed by and development environment inside parenthesis. ",
-		// 		`${projectPath}${projectName}`,
-		// 	);
-		// }
 
 		const apps = folders.split(",").map((el, index) => ({
 			name: el,
@@ -80,15 +68,25 @@ export default async (cmd, opts, appDir) => {
 		}));
 
 		for (let i = 0; i <= apps.length - 1; i++) {
-			console.log(i);
 			const app = apps[i];
+
+			const isNameValid = new RegExp(/^[a-zA-Z0-9_-]+$/).test(app.name);
+
+			if (!isNameValid) {
+				handleError(
+					"Invalid app name format.\nApp names must not contain special characters.",
+					`${projectPath}${projectName}`,
+				);
+			}
 
 			await list({
 				name: "devEnv",
 				message: `❔ Do you want to install any development environment on ${app.name}?`,
 				choices: ["vite", "none"],
 			}).then(res => {
-				app.devEnv = res.devEnv;
+				if (res.devEnv !== "none") {
+					app.devEnv = res.devEnv;
+				}
 			});
 		}
 
