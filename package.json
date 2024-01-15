@@ -4,7 +4,11 @@
 	"type": "module",
 	"keywords": [
 		"monorepo",
-		"boilerplate"
+		"boilerplate",
+		"cli",
+		"command-line",
+		"generator",
+		"javascript"
 	],
 	"description": "Monorepo project auto generator",
 	"main": "index.js",

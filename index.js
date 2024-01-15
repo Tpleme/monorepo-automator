@@ -17,6 +17,7 @@ program
 	.command("add <appName>")
 	.description("Add new app to project. Ex: add server")
 	.option("-e, --env [ENV]", "Set development environment to the app. Ex: add client -e vite")
+	.option("-p, --path [PATH]", "Set the path for the new project. EX: add client -p ./my_project_folder")
 	.action((cmd, opts) => add(cmd, opts, rootDir));
 
 program.parse();

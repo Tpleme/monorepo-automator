@@ -84,9 +84,7 @@ export default async (cmd, opts, appDir) => {
 				message: `❔ Do you want to install any development environment on ${app.name}?`,
 				choices: ["vite", "none"],
 			}).then(res => {
-				if (res.devEnv !== "none") {
-					app.devEnv = res.devEnv;
-				}
+				app.devEnv = res.devEnv;
 			});
 		}
 
@@ -97,7 +95,7 @@ export default async (cmd, opts, appDir) => {
 
 			setMessage(`Creating ${app.name}`);
 
-			if (app.devEnv) {
+			if (app.devEnv !== "none") {
 				if (app.devEnv !== "vite") {
 					handleError(
 						`${app.devEnv} is not supported dev environment. Use vite instead.`,

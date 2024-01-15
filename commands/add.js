@@ -11,7 +11,7 @@ const errorStyle = chalk.red.bold;
 export default async (cmd, opts, appDir) => {
 	let appName = cmd ?? null;
 	let devEnv = opts.env ?? null;
-	let appPath;
+	let appPath = opts.path ?? null;
 
 	try {
 		appName = appName.replace(/\s/g, "_");
@@ -22,15 +22,17 @@ export default async (cmd, opts, appDir) => {
 			handleError("Invalid project name. Project name must be a valid folder name format.");
 		}
 
-		await promisifyQuestion(
-			`❔ Where do you want to create the app ${appName}? (leave empty for current path)\n`,
-		).then(path => {
-			if (path === "." || path.length === 0) {
-				appPath = "./";
-			} else {
-				appPath = path;
-			}
-		});
+		if (!appPath) {
+			await promisifyQuestion(
+				`❔ Where do you want to create the app ${appName}? (leave empty for current path)\n`,
+			).then(path => {
+				if (path === "." || path.length === 0) {
+					appPath = "./";
+				} else {
+					appPath = path;
+				}
+			});
+		}
 
 		//check if parent dir exists
 		if (!existsSync(appPath)) {
@@ -55,24 +57,35 @@ export default async (cmd, opts, appDir) => {
 				message: "❔ Do you want to install any development environment?",
 				choices: ["vite", "none"],
 			}).then(res => {
-				if (res.devEnv !== "none") {
-					devEnv = res.devEnv;
-				}
+				devEnv = res.devEnv;
 			});
 		}
 
-		startAnimation();
-
-		if (devEnv) {
+		if (devEnv !== "none") {
 			if (devEnv !== "vite") {
 				handleError(`${devEnv} is not supported dev environment. Use vite instead.`, `${appPath}${appName}`);
 				return;
 			}
 
+			//Substituir por @inquirer/select
+			const framework = await list({
+				name: "framework",
+				message: `❔ Pick a framework for the app ${appName}?`,
+				choices: ["vue", "react", "preact", "lit", "svelte", "solid", "qwik"],
+			});
+
+			console.log(framework);
+
+			startAnimation();
+
 			setMessage(`Creating ${appName} - Installing and initializing vite`);
 			//init vite
-			await runCommandOnFolder(`${appPath}`, `npm create vite@latest ${appName} -- --template react`);
+			await runCommandOnFolder(
+				`${appPath}`,
+				`npm create vite@latest ${appName} -- --template ${framework.framework}`,
+			);
 
+			console.log("ehre");
 			//install dependencies
 			await runCommandOnFolder(`${appPath}${appName}`, "npm install");
 
@@ -83,6 +96,7 @@ export default async (cmd, opts, appDir) => {
 			await fsPromises.rm(`${appPath}${appName}/README.md`);
 
 			setMessage(`Creating ${appName} - Setting package.json scripts`);
+
 			//change package.json scripts, vite config and create envDir
 			const contents = await fsPromises.readFile(`${appPath}${appName}/package.json`, "utf-8");
 			const replacement = contents
@@ -94,7 +108,6 @@ export default async (cmd, opts, appDir) => {
 				.replace(/"lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",\n/, "");
 
 			await fsPromises.writeFile(`${appPath}${appName}/package.json`, replacement);
-
 			//copy vite config template
 			setMessage(`Creating ${appName} - Updating vite config`);
 			await fsPromises.copyFile(`${appDir}/filesTemplate/vite.config.js`, `${appPath}${appName}/vite.config.js`);
@@ -107,6 +120,8 @@ export default async (cmd, opts, appDir) => {
 			await fsPromises.writeFile(`${appPath}${appName}/envDir/.env.production`, "", "utf-8");
 			await fsPromises.writeFile(`${appPath}${appName}/envDir/.env.development`, "", "utf-8");
 		} else {
+			startAnimation();
+
 			//create server folder
 			setMessage(`Creating ${appName}`);
 			await createDirectory(`${appPath}${appName}`);

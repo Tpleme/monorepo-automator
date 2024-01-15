@@ -7,7 +7,7 @@
   <img alt="NPM Downloads" src="https://img.shields.io/npm/dt/%40tpleme%2Fmonorepo-automator?logo=npm">
 </p>
 
-## `This project currently only supports creation of React + vite and raw JS projects with Biomejs as lint and formatter`
+## `This project currently only supports creation of React + vite and vanilla JS projects with Biomejs as lint and formatter`
 
 # Monorepo Automator
 
@@ -56,6 +56,8 @@ monorepo-automator create [name] [options]
 Option | Description
 ---|---
 `-p` or `--path` | Provide path where you want to create the monorepo project
+<!-- TODO: add apps list option -->
+
 
 ##
 - ### Add
@@ -67,6 +69,9 @@ monorepo-automator add <name> [options]
 Option | Description
 ---|---
 `-e` or `--env` | Provide a development environment to the new app, ex: vite 
+`-p` or `--path` | Provide path where you want to create new app
+<!-- TODO: add path option -->
+
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
