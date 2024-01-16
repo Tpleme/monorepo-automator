@@ -1,5 +1,6 @@
 import { existsSync, rmSync } from "fs";
-import { promisifyQuestion, rl, list } from "../utils/PromisifyInput.js";
+import { promisifyQuestion, rl } from "../utils/PromisifyInput.js";
+import { selectList } from "../utils/InquirerPrompts.js";
 import { promises as fsPromises } from "fs";
 import { createDirectory, runCommandOnFolder } from "../cli_commands.js";
 import { startAnimation, stopAnimation, setMessage } from "../utils/TerminalLoaderIndicator.js";
@@ -52,12 +53,14 @@ export default async (cmd, opts, appDir) => {
 
 	try {
 		if (!devEnv) {
-			await list({
-				name: "devEnv",
+			await selectList({
 				message: "❔ Do you want to install any development environment?",
-				choices: ["vite", "none"],
+				choices: [
+					{ name: "Vite", value: "vite" },
+					{ name: "None", value: "none" },
+				],
 			}).then(res => {
-				devEnv = res.devEnv;
+				devEnv = res;
 			});
 		}
 
@@ -67,25 +70,24 @@ export default async (cmd, opts, appDir) => {
 				return;
 			}
 
-			//Substituir por @inquirer/select
-			const framework = await list({
-				name: "framework",
+			const framework = await selectList({
 				message: `❔ Pick a framework for the app ${appName}?`,
-				choices: ["vue", "react", "preact", "lit", "svelte", "solid", "qwik"],
+				choices: [
+					{ name: "Vue", value: "vue", description: `Build ${appName} using Vue` },
+					{ name: "React", value: "react", description: `Build ${appName} using React` },
+					{ name: "Preact", value: "preact", description: `Build ${appName} using Preact` },
+					{ name: "Lit", value: "lit", description: `Build ${appName} using Lit` },
+					{ name: "Svelte", value: "svelte", description: `Build ${appName} using Svelte` },
+					{ name: "Qwik", value: "qwik", description: `Build ${appName} using Qwik` },
+				],
 			});
-
-			console.log(framework);
 
 			startAnimation();
 
 			setMessage(`Creating ${appName} - Installing and initializing vite`);
 			//init vite
-			await runCommandOnFolder(
-				`${appPath}`,
-				`npm create vite@latest ${appName} -- --template ${framework.framework}`,
-			);
+			await runCommandOnFolder(`${appPath}`, `npm create vite@latest ${appName} -- --template ${framework}`);
 
-			console.log("ehre");
 			//install dependencies
 			await runCommandOnFolder(`${appPath}${appName}`, "npm install");
 

@@ -1,9 +1,10 @@
 import { existsSync, rmSync } from "fs";
-import { promisifyQuestion, rl, list } from "../utils/PromisifyInput.js";
+import { promisifyQuestion, rl } from "../utils/PromisifyInput.js";
 import { promises as fsPromises } from "fs";
 import { createDirectory, runCommandOnFolder } from "../cli_commands.js";
 import { startAnimation, stopAnimation, setMessage } from "../utils/TerminalLoaderIndicator.js";
 import chalk from "chalk";
+import { selectList } from "../utils/InquirerPrompts.js";
 
 const okStyle = chalk.green.bold;
 const errorStyle = chalk.red.bold;
@@ -79,12 +80,14 @@ export default async (cmd, opts, appDir) => {
 				);
 			}
 
-			await list({
-				name: "devEnv",
+			await selectList({
 				message: `❔ Do you want to install any development environment on ${app.name}?`,
-				choices: ["vite", "none"],
+				choices: [
+					{ name: "Vite", value: "vite" },
+					{ name: "None", value: "none" },
+				],
 			}).then(res => {
-				app.devEnv = res.devEnv;
+				app.devEnv = res;
 			});
 		}
 
