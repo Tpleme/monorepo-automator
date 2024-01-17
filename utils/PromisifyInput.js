@@ -1,7 +1,7 @@
 import { createInterface } from "readline";
 import fileSystemCompleter from "./FileSystemCompleter.js";
 import chalk from "chalk";
-import ansiEraseLines from "./AnsiEraseLines.js";
+// import ansiEraseLines from "./AnsiEraseLines.js";
 
 export const rl = createInterface({
 	input: process.stdin,
