@@ -29,8 +29,6 @@
 	},
 	"homepage": "https://github.com/Tpleme/monorepo-automator#readme",
 	"dependencies": {
-		"@inquirer/input": "^1.2.14",
-		"@inquirer/select": "^1.3.1",
 		"chalk": "^5.3.0",
 		"commander": "^11.1.0"
 	},

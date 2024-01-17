@@ -1,10 +1,10 @@
 import { existsSync, rmSync } from "fs";
 import { promisifyQuestion, rl } from "../utils/PromisifyInput.js";
-import { selectList } from "../utils/InquirerPrompts.js";
 import { promises as fsPromises } from "fs";
 import { createDirectory, runCommandOnFolder } from "../cli_commands.js";
 import { startAnimation, stopAnimation, setMessage } from "../utils/TerminalLoaderIndicator.js";
 import chalk from "chalk";
+import { select } from "../utils/SelectPrompt.js";
 
 const okStyle = chalk.green.bold;
 const errorStyle = chalk.red.bold;
@@ -53,7 +53,7 @@ export default async (cmd, opts, appDir) => {
 
 	try {
 		if (!devEnv) {
-			await selectList({
+			await select({
 				message: "❔ Do you want to install any development environment?",
 				choices: [
 					{ name: "Vite", value: "vite" },
@@ -70,7 +70,7 @@ export default async (cmd, opts, appDir) => {
 				return;
 			}
 
-			const framework = await selectList({
+			const framework = await select({
 				message: `❔ Pick a framework for the app ${appName}?`,
 				choices: [
 					{ name: "Vue", value: "vue", description: `Build ${appName} using Vue` },

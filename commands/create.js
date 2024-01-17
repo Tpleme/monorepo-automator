@@ -4,7 +4,7 @@ import { promises as fsPromises } from "fs";
 import { createDirectory, runCommandOnFolder } from "../cli_commands.js";
 import { startAnimation, stopAnimation, setMessage } from "../utils/TerminalLoaderIndicator.js";
 import chalk from "chalk";
-import { selectList } from "../utils/InquirerPrompts.js";
+import { select } from "../utils/SelectPrompt.js";
 
 const okStyle = chalk.green.bold;
 const errorStyle = chalk.red.bold;
@@ -80,7 +80,7 @@ export default async (cmd, opts, appDir) => {
 				);
 			}
 
-			await selectList({
+			await select({
 				message: `❔ Do you want to install any development environment on ${app.name}?`,
 				choices: [
 					{ name: "Vite", value: "vite" },

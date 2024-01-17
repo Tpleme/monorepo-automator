@@ -1,9 +1,7 @@
 import { createInterface } from "readline";
 import fileSystemCompleter from "./FileSystemCompleter.js";
 import chalk from "chalk";
-
-//TODO: until inquirer builds a completer, we need to use readline for the questions,
-//the thing is that this way we have 2 streams so the select questions prints 2 outputs
+import ansiEraseLines from "./AnsiEraseLines.js";
 
 export const rl = createInterface({
 	input: process.stdin,
@@ -12,7 +10,14 @@ export const rl = createInterface({
 });
 
 export const promisifyQuestion = question => {
-	return new Promise(resolve => rl.question(chalk.cyan.bold(question), res => resolve(res)));
+	return new Promise(resolve =>
+		rl.question(chalk.cyan.bold(question), res => {
+			// process.stdout.write(ansiEraseLines(1));
+			// process.stdout.write("\u001B[2k\u001B[2A\u001B[G");
+			// process.stdout.write(`${chalk.cyan.bold("aksld")} ${chalk.yellow(res)}`);
+			resolve(res);
+		}),
+	);
 };
 
 rl.on("close", () => {
