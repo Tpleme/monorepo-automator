@@ -1,5 +1,5 @@
 name: Code quality
-run-name: Checking code quality from ${{ github.actor }} pushto master.
+run-name: Checking code quality from ${{ github.actor }} push to master.
 
 on:
   push:

@@ -1,6 +1,11 @@
 import { emitKeypressEvents } from "readline";
+import eraseLines from "./utils/EraseLines.js";
+import { existsSync, rmSync } from "fs";
+import { promisifyQuestion, rl } from "./utils/PromisifyInput.js";
+import { promises as fsPromises } from "fs";
+import { createDirectory, runCommandOnFolder } from "./cli_commands.js";
+import { startAnimation, stopAnimation, setMessage } from "./utils/TerminalLoaderIndicator.js";
 import chalk from "chalk";
-import eraseLines from "./EraseLines.js";
 
 const input = process.stdin;
 const output = process.stdout;
@@ -122,3 +127,28 @@ const hideCursor = () => {
 const showCursor = () => {
 	output.write("\u001B[?25h");
 };
+
+try {
+	await promisifyQuestion("❔ Where do you want to create the project? (leave empty for current path)");
+
+	await select({
+		question: "❔ Do you want to install any development environment on?",
+		options: [
+			{ name: "Vite", value: "vite", description: "asdkasldkj" },
+			{ name: "None", value: "none", description: "123jkasjdl" },
+		],
+	});
+
+	await promisifyQuestion("❔ Where do you want to create the project? (leave empty for current path)");
+
+	await select({
+		question: "❔ aasaaaaaaaaaaaaaaaaaahhhh?",
+		options: ["yes", "no", "maybe"],
+	});
+	await select({
+		question: "❔ 123?",
+		options: ["1", "2", "3"],
+	});
+} catch (err) {
+	console.log(err);
+}

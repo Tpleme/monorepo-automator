@@ -7,6 +7,7 @@ export const startAnimation = () => {
 	const P = ["⣾", "⣷", "⣯", "⣟", "⡿", "⢿", "⣻", "⣽"];
 	let x = 0;
 	loader = setInterval(() => {
+		process.stdout.clearLine();
 		process.stdout.write(chalk.white.bold(`\r${P[x++]} ${message}`));
 		x &= 7;
 	}, 100);

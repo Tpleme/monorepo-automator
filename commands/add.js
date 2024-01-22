@@ -25,7 +25,7 @@ export default async (cmd, opts, appDir) => {
 
 		if (!appPath) {
 			await promisifyQuestion(
-				`❔ Where do you want to create the app ${appName}? (leave empty for current path)\n`,
+				`❔ Where do you want to create the app ${appName}? (leave empty for current path)`,
 			).then(path => {
 				if (path === "." || path.length === 0) {
 					appPath = "./";
@@ -51,11 +51,12 @@ export default async (cmd, opts, appDir) => {
 		return;
 	}
 
+	//TODO: build a object with all dev envs, each with frameworks and each framework with type
 	try {
 		if (!devEnv) {
 			await select({
-				message: "❔ Do you want to install any development environment?",
-				choices: [
+				question: "❔ Do you want to install any development environment?",
+				options: [
 					{ name: "Vite", value: "vite" },
 					{ name: "None", value: "none" },
 				],
@@ -69,10 +70,9 @@ export default async (cmd, opts, appDir) => {
 				handleError(`${devEnv} is not supported dev environment. Use vite instead.`, `${appPath}${appName}`);
 				return;
 			}
-
 			const framework = await select({
-				message: `❔ Pick a framework for the app ${appName}?`,
-				choices: [
+				question: `❔ Pick a framework for the app ${appName}?`,
+				options: [
 					{ name: "Vue", value: "vue", description: `Build ${appName} using Vue` },
 					{ name: "React", value: "react", description: `Build ${appName} using React` },
 					{ name: "Preact", value: "preact", description: `Build ${appName} using Preact` },

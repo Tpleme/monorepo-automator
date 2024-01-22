@@ -1,5 +1,5 @@
 import { existsSync, rmSync } from "fs";
-import { promisifyQuestion, rl } from "../utils/PromisifyInput.js";
+import { promisifyQuestion } from "../utils/PromisifyInput.js";
 import { promises as fsPromises } from "fs";
 import { createDirectory, runCommandOnFolder } from "../cli_commands.js";
 import { startAnimation, stopAnimation, setMessage } from "../utils/TerminalLoaderIndicator.js";
@@ -15,7 +15,7 @@ export default async (cmd, opts, appDir) => {
 
 	try {
 		if (!projectName) {
-			await promisifyQuestion("❔ What is the name of the project?\n").then(name => {
+			await promisifyQuestion("❔ What is the name of the project?").then(name => {
 				projectName = name;
 			});
 		}
@@ -29,7 +29,7 @@ export default async (cmd, opts, appDir) => {
 
 		if (!projectPath) {
 			await promisifyQuestion(
-				`❔ Where do you want to create the project ${projectName}? (leave empty for current path)\n`,
+				`❔ Where do you want to create the project ${projectName}? (leave empty for current path)`,
 			).then(path => {
 				if (path === "." || path.length === 0) {
 					projectPath = "./";
@@ -51,7 +51,7 @@ export default async (cmd, opts, appDir) => {
 
 		await runCommandOnFolder(`${projectPath}${projectName}`, "npm init -y");
 
-		console.log(okStyle(`✅ Project ${projectName} will be create on ${projectPath}${projectName}.`));
+		process.stdout.write(okStyle(`✅ Project ${projectName} will be create on ${projectPath}${projectName}.\n`));
 	} catch (err) {
 		handleError(err);
 		return;
@@ -59,7 +59,7 @@ export default async (cmd, opts, appDir) => {
 
 	try {
 		const folders = await promisifyQuestion(
-			"❔ Which apps should this project have? (ex: client,backoffice,server) (separate by comma)\n",
+			"❔ Which apps should this project have? (ex: client,backoffice,server) (separate by comma)",
 		);
 
 		const apps = folders.split(",").map((el, index) => ({
@@ -81,8 +81,8 @@ export default async (cmd, opts, appDir) => {
 			}
 
 			await select({
-				message: `❔ Do you want to install any development environment on ${app.name}?`,
-				choices: [
+				question: `❔ Do you want to install any development environment on ${app.name}?`,
+				options: [
 					{ name: "Vite", value: "vite" },
 					{ name: "None", value: "none" },
 				],
@@ -208,15 +208,15 @@ export default async (cmd, opts, appDir) => {
 	}
 
 	stopAnimation();
-	console.log(okStyle(`\r✅ ${projectName} project created`));
-	rl.close();
+	process.stdout.write(okStyle(`\r✅ ${projectName} project created\n`));
+	process.exit(1);
 };
 
 const handleError = (err, path) => {
-	console.log(errorStyle(`\n❌ ${err}`));
+	process.stdout.write(errorStyle(`\n❌ ${err}\n`));
 	if (path) {
 		rmSync(path, { recursive: true, force: true });
 	}
 
-	rl.close();
+	process.exit(1);
 };
