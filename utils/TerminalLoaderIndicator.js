@@ -15,6 +15,7 @@ export const startAnimation = () => {
 
 export const stopAnimation = () => {
 	process.stdout.clearLine();
+	process.stdout.cursorTo(0);
 	clearInterval(loader);
 };
 

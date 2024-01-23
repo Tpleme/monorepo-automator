@@ -1,15 +1,18 @@
-import { existsSync, rmSync } from "fs";
-import { promisifyQuestion, rl } from "../utils/PromisifyInput.js";
+import { existsSync, rmSync, readdirSync } from "fs";
+import { promisifyQuestion } from "../utils/PromisifyInput.js";
 import { promises as fsPromises } from "fs";
 import { createDirectory, runCommandOnFolder } from "../cli_commands.js";
 import { startAnimation, stopAnimation, setMessage } from "../utils/TerminalLoaderIndicator.js";
 import chalk from "chalk";
 import { select } from "../utils/SelectPrompt.js";
+import SelectOptions from "../data/SelectOptions.js";
+import { addScriptToPackageJson, appendToFile, buildPackageScripts } from "../utils/AppendToFile.js";
+import { configText } from "../filesTemplate/viteconfig.js";
 
 const okStyle = chalk.green.bold;
 const errorStyle = chalk.red.bold;
 
-export default async (cmd, opts, appDir) => {
+export default async (cmd, opts) => {
 	let appName = cmd ?? null;
 	let devEnv = opts.env ?? null;
 	let appPath = opts.path ?? null;
@@ -45,21 +48,17 @@ export default async (cmd, opts, appDir) => {
 			handleError(`${appName} already exists in the project folder.`);
 		}
 
-		console.log(okStyle(`✅ App ${appName} will be create on ${appPath}${appName}.`));
+		// console.log(okStyle(`✅ App ${appName} will be create on ${appPath}${appName}.`));
 	} catch (err) {
 		handleError(err);
 		return;
 	}
 
-	//TODO: build a object with all dev envs, each with frameworks and each framework with type
 	try {
 		if (!devEnv) {
 			await select({
 				question: "❔ Do you want to install any development environment?",
-				options: [
-					{ name: "Vite", value: "vite" },
-					{ name: "None", value: "none" },
-				],
+				options: SelectOptions,
 			}).then(res => {
 				devEnv = res;
 			});
@@ -70,49 +69,79 @@ export default async (cmd, opts, appDir) => {
 				handleError(`${devEnv} is not supported dev environment. Use vite instead.`, `${appPath}${appName}`);
 				return;
 			}
+
+			const devEnvObject = SelectOptions.find(el => el.value === devEnv);
+
+			if (!devEnvObject) handleError("Error: devEnvObject not found", `${appPath}${appName}`);
+
 			const framework = await select({
-				question: `❔ Pick a framework for the app ${appName}?`,
-				options: [
-					{ name: "Vue", value: "vue", description: `Build ${appName} using Vue` },
-					{ name: "React", value: "react", description: `Build ${appName} using React` },
-					{ name: "Preact", value: "preact", description: `Build ${appName} using Preact` },
-					{ name: "Lit", value: "lit", description: `Build ${appName} using Lit` },
-					{ name: "Svelte", value: "svelte", description: `Build ${appName} using Svelte` },
-					{ name: "Qwik", value: "qwik", description: `Build ${appName} using Qwik` },
-				],
+				question: `❔ Pick a framework for the app ${appName}:`,
+				options: devEnvObject.frameworks,
+			});
+
+			const devEnvObjectFramework = devEnvObject.frameworks.find(el => el.value === framework);
+
+			if (!devEnvObjectFramework) handleError("Error: devEnvObjectFramework not found", `${appPath}${appName}`);
+
+			const type = await select({
+				question: "❔ Pick one:",
+				options: devEnvObjectFramework.type,
 			});
 
 			startAnimation();
 
 			setMessage(`Creating ${appName} - Installing and initializing vite`);
 			//init vite
-			await runCommandOnFolder(`${appPath}`, `npm create vite@latest ${appName} -- --template ${framework}`);
+			await runCommandOnFolder(
+				`${appPath}`,
+				`npm create vite@latest ${appName} -- --template ${framework}${type.length === 0 ? "" : `-${type}`}`,
+			);
 
 			//install dependencies
 			await runCommandOnFolder(`${appPath}${appName}`, "npm install");
 
 			setMessage(`Creating ${appName} - Removing unnecessary files`);
 			//remove eslintrc, README and gitignore
-			await fsPromises.rm(`${appPath}${appName}/.eslintrc.cjs`);
-			await fsPromises.rm(`${appPath}${appName}/.gitignore`);
-			await fsPromises.rm(`${appPath}${appName}/README.md`);
+			if (existsSync(`${appPath}${appName}/.eslintrc.cjs`)) {
+				await fsPromises.rm(`${appPath}${appName}/.eslintrc.cjs`);
+			}
+
+			if (existsSync(`${appPath}${appName}/.gitignore`)) {
+				await fsPromises.rm(`${appPath}${appName}/.gitignore`);
+			}
+
+			if (existsSync(`${appPath}${appName}/README.md`)) {
+				await fsPromises.rm(`${appPath}${appName}/README.md`);
+			}
 
 			setMessage(`Creating ${appName} - Setting package.json scripts`);
+
+			//count the number of folders and add to calculate the default port number
+			const numberOfFolders = readdirSync(appPath);
 
 			//change package.json scripts, vite config and create envDir
 			const contents = await fsPromises.readFile(`${appPath}${appName}/package.json`, "utf-8");
 			const replacement = contents
-				.replace(/"dev": "vite"/, `"dev": "vite --open --port ${3000}"`)
-				.replace(
-					/"build": "vite build"/,
-					`"build-patch": "npm version patch && vite build",\n    "build-minor": "npm version minor && vite build",\n    "build-major": "npm version major && vite build"`,
-				)
+				.replace(/"dev": "vite"/, `"dev": "vite --open --port ${3000 + numberOfFolders.length}"`)
 				.replace(/"lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",\n/, "");
 
 			await fsPromises.writeFile(`${appPath}${appName}/package.json`, replacement);
-			//copy vite config template
+
+			await buildPackageScripts(`${appPath}${appName}/package.json`);
+
+			//Add start script to parent package.json
+			if (existsSync(`${appPath}/package.json`)) {
+				await addScriptToPackageJson(`${appPath}/package.json`, `cd ${appName} && npm run dev`, appName);
+			}
+
+			//update vite config file
 			setMessage(`Creating ${appName} - Updating vite config`);
-			await fsPromises.copyFile(`${appDir}/filesTemplate/vite.config.js`, `${appPath}${appName}/vite.config.js`);
+			const fileExtension = `${type === "ts" || type === "swc-ts" ? "ts" : "js"}`;
+
+			if (existsSync(`${appPath}${appName}/vite.config.${fileExtension}`)) {
+				await appendToFile(configText, 5, `${appPath}${appName}/vite.config.${fileExtension}`);
+				await appendToFile(`import path from "path";`, 1, `${appPath}${appName}/vite.config.${fileExtension}`);
+			}
 
 			//create envDir
 			setMessage(`Creating ${appName} - Setup env folder and files`);
@@ -132,13 +161,18 @@ export default async (cmd, opts, appDir) => {
 			setMessage(`Creating ${appName} - Initializing npm`);
 			await runCommandOnFolder(`${appPath}${appName}`, "npm init -y");
 
+			//Add start script to parent package.json
+			if (existsSync(`${appPath}/package.json`)) {
+				await addScriptToPackageJson(`${appPath}/package.json`, `cd ${appName} && node index.js`, appName);
+			}
+
 			//create index.js file
 			await fsPromises.writeFile(`${appPath}${appName}/index.js`, `//${appName} entry file`, "utf-8");
 		}
 
 		stopAnimation();
 		console.log(okStyle(`\r✅ ${appName} app created`));
-		rl.close();
+		process.exit(1);
 	} catch (err) {
 		handleError(err, `${appPath}${appName}`);
 		return;
@@ -151,5 +185,5 @@ const handleError = (err, path) => {
 		rmSync(path, { recursive: true, force: true });
 	}
 
-	rl.close();
+	process.exit(1);
 };

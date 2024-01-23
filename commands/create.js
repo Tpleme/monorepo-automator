@@ -5,6 +5,9 @@ import { createDirectory, runCommandOnFolder } from "../cli_commands.js";
 import { startAnimation, stopAnimation, setMessage } from "../utils/TerminalLoaderIndicator.js";
 import chalk from "chalk";
 import { select } from "../utils/SelectPrompt.js";
+import SelectOptions from "../data/SelectOptions.js";
+import { appendToFile, buildPackageScripts } from "../utils/AppendToFile.js";
+import { configText } from "../filesTemplate/viteconfig.js";
 
 const okStyle = chalk.green.bold;
 const errorStyle = chalk.red.bold;
@@ -47,11 +50,14 @@ export default async (cmd, opts, appDir) => {
 			handleError(`Folder ${projectName} already exists on the ${projectPath} folder.`);
 		}
 
+		startAnimation();
+
 		await createDirectory(`${projectPath}${projectName}`);
 
 		await runCommandOnFolder(`${projectPath}${projectName}`, "npm init -y");
 
-		process.stdout.write(okStyle(`✅ Project ${projectName} will be create on ${projectPath}${projectName}.\n`));
+		stopAnimation();
+		// process.stdout.write(okStyle(`✅ Project ${projectName} will be create on ${projectPath}${projectName}.\n`));
 	} catch (err) {
 		handleError(err);
 		return;
@@ -68,7 +74,7 @@ export default async (cmd, opts, appDir) => {
 			port: 3000 + index,
 		}));
 
-		for (let i = 0; i <= apps.length - 1; i++) {
+		for (let i = 0; i < apps.length; i++) {
 			const app = apps[i];
 
 			const isNameValid = new RegExp(/^[a-zA-Z0-9_-]+$/).test(app.name);
@@ -81,14 +87,36 @@ export default async (cmd, opts, appDir) => {
 			}
 
 			await select({
-				question: `❔ Do you want to install any development environment on ${app.name}?`,
-				options: [
-					{ name: "Vite", value: "vite" },
-					{ name: "None", value: "none" },
-				],
+				question: `❔ Do you want to install any development environment for ${app.name}?`,
+				options: SelectOptions,
 			}).then(res => {
 				app.devEnv = res;
 			});
+
+			if (app.devEnv !== "none") {
+				const devEnvObject = SelectOptions.find(el => el.value === app.devEnv);
+
+				if (!devEnvObject) handleError("Error: devEnvObject not found", `${projectPath}${projectName}`);
+
+				const framework = await select({
+					question: `❔ Pick a framework for the app ${app.name}:`,
+					options: devEnvObject.frameworks,
+				});
+
+				app.framework = framework;
+
+				const devEnvObjectFramework = devEnvObject.frameworks.find(el => el.value === framework);
+
+				if (!devEnvObjectFramework)
+					handleError("Error: devEnvObjectFramework not found", `${projectPath}${projectName}`);
+
+				await select({
+					question: "❔ Pick one:",
+					options: devEnvObjectFramework.type,
+				}).then(res => {
+					app.type = res;
+				});
+			}
 		}
 
 		startAnimation();
@@ -111,7 +139,9 @@ export default async (cmd, opts, appDir) => {
 				//init vite
 				await runCommandOnFolder(
 					`${projectPath}${projectName}`,
-					`npm create vite@latest ${app.name} -- --template react`,
+					`npm create vite@latest ${app.name} -- --template ${app.framework}${
+						app.type.length === 0 ? "" : `-${app.type}`
+					}`,
 				);
 
 				//install dependencies
@@ -119,9 +149,17 @@ export default async (cmd, opts, appDir) => {
 
 				setMessage(`Creating ${app.name} - Removing unnecessary files`);
 				//remove eslintrc, README and gitignore
-				await fsPromises.rm(`${app.path}/.eslintrc.cjs`);
-				await fsPromises.rm(`${app.path}/.gitignore`);
-				await fsPromises.rm(`${app.path}/README.md`);
+				if (existsSync(`${app.path}/.eslintrc.cjs`)) {
+					await fsPromises.rm(`${app.path}/.eslintrc.cjs`);
+				}
+
+				if (existsSync(`${app.path}/README.md`)) {
+					await fsPromises.rm(`${app.path}/README.md`);
+				}
+
+				if (existsSync(`${app.path}/.gitignore`)) {
+					await fsPromises.rm(`${app.path}/.gitignore`);
+				}
 
 				setMessage(`Creating ${app.name} - Setting package.json scripts`);
 				//change package.json scripts, vite config and create envDir
@@ -129,19 +167,22 @@ export default async (cmd, opts, appDir) => {
 				const replacement = contents
 					.replace(/"dev": "vite"/, `"dev": "vite --open --port ${app.port}"`)
 					.replace(
-						/"build": "vite build"/,
-						`"build-patch": "npm version patch && vite build",\n    "build-minor": "npm version minor && vite build",\n    "build-major": "npm version major && vite build"`,
-					)
-					.replace(
 						/"lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",\n/,
 						"",
 					);
 
 				await fsPromises.writeFile(`${app.path}/package.json`, replacement);
 
-				//copy vite config template
+				await buildPackageScripts(`${app.path}/package.json`);
+
+				//update vite config file
 				setMessage(`Creating ${app.name} - Updating vite config`);
-				await fsPromises.copyFile(`${appDir}/filesTemplate/vite.config.js`, `${app.path}/vite.config.js`);
+				const fileExtension = `${app.type === "ts" || app.type === "swc-ts" ? "ts" : "js"}`;
+
+				if (existsSync(`${app.path}/vite.config.${fileExtension}`)) {
+					await appendToFile(configText, 5, `${app.path}/vite.config.${fileExtension}`);
+					await appendToFile(`import path from "path";`, 1, `${app.path}/vite.config.${fileExtension}`);
+				}
 
 				//create envDir
 				setMessage(`Creating ${app.name} - Setup env folder and files`);
