@@ -225,7 +225,7 @@ export default async (cmd, opts, appDir) => {
 		setMessage(`Setting up ${projectName} - Creating package.json scripts`);
 		//config scripts on parent package.json
 		const appsRunScripts = apps.map(el => {
-			if (el.devEnv) return `"${el.name}": "cd ${el.name} && npm run dev",`;
+			if (el.devEnv !== "none") return `"${el.name}": "cd ${el.name} && npm run dev",`;
 			return `"${el.name}": "cd ${el.name} && node index.js",`;
 		});
 
