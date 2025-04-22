@@ -54,7 +54,7 @@ export default async (cmd, opts, appDir) => {
 
 		await createDirectory(`${projectPath}${projectName}`);
 
-		await runCommandOnFolder(`${projectPath}${projectName}`, "npm init -y");
+		await runCommandOnFolder(`${projectPath}${projectName}`, "npm", ["init", "-y"]);
 
 		stopAnimation();
 		// process.stdout.write(okStyle(`✅ Project ${projectName} will be create on ${projectPath}${projectName}.\n`));
@@ -137,15 +137,17 @@ export default async (cmd, opts, appDir) => {
 
 				setMessage(`Creating ${app.name} - Installing and initializing vite`);
 				//init vite
-				await runCommandOnFolder(
-					`${projectPath}${projectName}`,
-					`npm create vite@latest ${app.name} -- --template ${app.framework}${
-						app.type.length === 0 ? "" : `-${app.type}`
-					}`,
-				);
+				await runCommandOnFolder(`${projectPath}${projectName}`, "npm", [
+					"create",
+					"vite@latest",
+					app.name,
+					"--",
+					"--template",
+					`${app.framework}${app.type.length === 0 ? "" : `-${app.type}`}`,
+				]);
 
 				//install dependencies
-				await runCommandOnFolder(app.path, "npm install");
+				await runCommandOnFolder(app.path, "npm", ["install"]);
 
 				setMessage(`Creating ${app.name} - Removing unnecessary files`);
 				//remove eslintrc, README and gitignore
@@ -201,7 +203,7 @@ export default async (cmd, opts, appDir) => {
 
 			//init npm
 			setMessage(`Creating ${app.name} - Initializing npm`);
-			await runCommandOnFolder(`${app.path}`, "npm init -y");
+			await runCommandOnFolder(`${app.path}`, "npm", ["init", "-y"]);
 
 			//create index.js file
 			await fsPromises.writeFile(`${app.path}/index.js`, `//${app.name} entry file`, "utf-8");
@@ -209,7 +211,12 @@ export default async (cmd, opts, appDir) => {
 
 		//install biome
 		setMessage(`Setting up ${projectName} - Install and initialize Biomejs`);
-		await runCommandOnFolder(`${projectPath}${projectName}`, "npm install --save-dev --save-exact @biomejs/biome");
+		await runCommandOnFolder(`${projectPath}${projectName}`, "npm", [
+			"install",
+			"--save-dev",
+			"--save-exact",
+			"@biomejs/biome",
+		]);
 
 		//copy biome and gitignore, and create readme
 		setMessage(`Setting up ${projectName} - Config biome, gitignore and readme files`);
@@ -220,7 +227,7 @@ export default async (cmd, opts, appDir) => {
 
 		//Update biome schema
 		setMessage(`Setting up ${projectName} - Updating biome schema`);
-		await runCommandOnFolder(`${projectPath}${projectName}`, "npx @biomejs/biome migrate --write");
+		await runCommandOnFolder(`${projectPath}${projectName}`, "npx", ["@biomejs/biome", "migrate", "--write"]);
 
 		setMessage(`Setting up ${projectName} - Creating package.json scripts`);
 		//config scripts on parent package.json

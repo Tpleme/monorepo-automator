@@ -92,13 +92,17 @@ export default async (cmd, opts) => {
 
 			setMessage(`Creating ${appName} - Installing and initializing vite`);
 			//init vite
-			await runCommandOnFolder(
-				`${appPath}`,
-				`npm create vite@latest ${appName} -- --template ${framework}${type.length === 0 ? "" : `-${type}`}`,
-			);
+			await runCommandOnFolder(`${appPath}`, "npm", [
+				"create",
+				"vite@latest",
+				appName,
+				"--",
+				"--template",
+				`${framework}${type.length === 0 ? "" : `-${type}`}`,
+			]);
 
 			//install dependencies
-			await runCommandOnFolder(`${appPath}${appName}`, "npm install");
+			await runCommandOnFolder(`${appPath}${appName}`, "npm", ["install"]);
 
 			setMessage(`Creating ${appName} - Removing unnecessary files`);
 			//remove eslintrc, README and gitignore
@@ -159,7 +163,7 @@ export default async (cmd, opts) => {
 
 			//init npm
 			setMessage(`Creating ${appName} - Initializing npm`);
-			await runCommandOnFolder(`${appPath}${appName}`, "npm init -y");
+			await runCommandOnFolder(`${appPath}${appName}`, "npm", ["init", "-y"]);
 
 			//Add start script to parent package.json
 			if (existsSync(`${appPath}/package.json`)) {
