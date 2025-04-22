@@ -16,7 +16,11 @@ export const createDirectory = async path => {
 	});
 };
 
-export const runCommandOnFolder = async (folder, command, args) => {
+export const runCommandOnFolder = async (folder, commandString) => {
+	const parts = commandString.split(" ");
+	const command = parts.shift();
+	const args = parts;
+
 	return new Promise((resolve, reject) => {
 		const cmd = spawn(command, args, { shell: true, detached: true, cwd: folder });
 
