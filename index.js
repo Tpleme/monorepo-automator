@@ -6,7 +6,6 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 //TODO: add github workflow code-quality
 //TODO: add extra tags to index.html
-//TODO: add .env + port to server app
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
 

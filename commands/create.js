@@ -64,6 +64,10 @@ export default async (cmd, opts, appDir) => {
 	}
 
 	try {
+		const domain = await promisifyQuestion(
+			"❔ Type the domain name of the project? (leave blank if you don't have it)",
+		);
+
 		const folders = await promisifyQuestion(
 			"❔ Which apps should this project have? (ex: client,backoffice,server) (separate by comma)",
 		);
@@ -72,6 +76,7 @@ export default async (cmd, opts, appDir) => {
 			name: el,
 			path: `${projectPath}${projectName}/${el}`,
 			port: 3000 + index,
+			domain: domain.length > 0 ? `${el}.${domain}` : null,
 		}));
 
 		for (let i = 0; i < apps.length; i++) {
@@ -166,14 +171,11 @@ export default async (cmd, opts, appDir) => {
 				const contents = await fsPromises.readFile(`${app.path}/package.json`, "utf-8");
 				const replacement = contents
 					.replace(/"dev": "vite"/, `"dev": "vite --open --port ${app.port}"`)
-					.replace(
-						/"lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",\n/,
-						"",
-					);
+					.replace(/"lint": "eslint ./, "");
 
 				await fsPromises.writeFile(`${app.path}/package.json`, replacement);
 
-				await buildPackageScripts(`${app.path}/package.json`);
+				// await buildPackageScripts(`${app.path}/package.json`);
 
 				//update vite config file
 				setMessage(`Creating ${app.name} - Updating vite config`);
@@ -188,9 +190,23 @@ export default async (cmd, opts, appDir) => {
 				setMessage(`Creating ${app.name} - Setup env folder and files`);
 				await createDirectory(`${app.path}/envDir`);
 
+				const serverAppNames = ["server", "api"];
+
+				const devAppsURLS = apps.map(app => {
+					if (serverAppNames.includes(app.name)) {
+						return `${app.name.toUpperCase()}_URL=http://localhost:${app.port}`;
+					}
+				});
+
+				const prodAppsURLS = apps.map(app => {
+					if (serverAppNames.includes(app.name)) {
+						return `${app.name.toUpperCase()}_URL=https://${app.domain ?? ""}`;
+					}
+				});
+
 				//create env files
-				await fsPromises.writeFile(`${app.path}/envDir/.env.production`, "", "utf-8");
-				await fsPromises.writeFile(`${app.path}/envDir/.env.development`, "", "utf-8");
+				await fsPromises.writeFile(`${app.path}/envDir/.env.development`, devAppsURLS.join("\n"), "utf-8");
+				await fsPromises.writeFile(`${app.path}/envDir/.env.production`, prodAppsURLS.join("\n"), "utf-8");
 
 				continue;
 			}
@@ -205,6 +221,13 @@ export default async (cmd, opts, appDir) => {
 
 			//create index.js file
 			await fsPromises.writeFile(`${app.path}/index.js`, `//${app.name} entry file`, "utf-8");
+
+			const devAppsURLS = apps.map(app => `${app.name.toUpperCase()}_URL=http://localhost:${app.port}`);
+			const prodAppsURLS = apps.map(app => `${app.name.toUpperCase()}_URL=https://${app.domain ?? ""}`);
+
+			//create env files
+			await fsPromises.writeFile(`${app.path}/.env.development`, devAppsURLS.join("\n"), "utf-8");
+			await fsPromises.writeFile(`${app.path}/.env.production`, prodAppsURLS.join("\n"), "utf-8");
 		}
 
 		//install biome
@@ -223,6 +246,7 @@ export default async (cmd, opts, appDir) => {
 		await runCommandOnFolder(`${projectPath}${projectName}`, "npx @biomejs/biome migrate --write");
 
 		setMessage(`Setting up ${projectName} - Creating package.json scripts`);
+
 		//config scripts on parent package.json
 		const appsRunScripts = apps.map(el => {
 			if (el.devEnv !== "none") return `"${el.name}": "cd ${el.name} && npm run dev",`;

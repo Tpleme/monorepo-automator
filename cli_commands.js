@@ -24,22 +24,28 @@ export const runCommandOnFolder = async (folder, commandString) => {
 	return new Promise((resolve, reject) => {
 		const cmd = spawn(command, args, { shell: true, detached: true, cwd: folder });
 
+		let stdoutData = "";
+		let stderrData = "";
+
 		cmd.stdout.on("data", data => {
-			resolve(data);
+			stdoutData += data.toString();
 		});
 
 		cmd.stderr.on("data", data => {
-			reject(data);
-			console.log(`stderr: ${data}`);
+			stderrData += data.toString();
+			console.error(`stderr: ${data.toString()}`);
 		});
 
 		cmd.on("error", error => {
 			reject(error.message);
-			console.log(`error: ${error.message}`);
 		});
 
-		// cmd.on("close", code => {
-		// 	console.log(`child process exited with code ${code}`);
-		// });
+		cmd.on("close", code => {
+			if (code === 0) {
+				resolve(stdoutData.trim());
+			} else {
+				reject(`Exited with code ${code}\n${stderrData}`);
+			}
+		});
 	});
 };
