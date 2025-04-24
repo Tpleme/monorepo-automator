@@ -259,7 +259,10 @@ export default async (cmd, opts, appDir) => {
 		//copy biome and gitignore, and create readme
 		setMessage(`Setting up ${projectName} - Config biome, gitignore and readme files`);
 		await fsPromises.copyFile(`${appDir}/filesTemplate/biome.json`, `${projectPath}${projectName}/biome.json`);
-		await fsPromises.copyFile(`${appDir}/filesTemplate/.gitignore`, `${projectPath}${projectName}/.gitignore`);
+		await fsPromises.copyFile(
+			`${appDir}/filesTemplate/gitignore_file.txt`,
+			`${projectPath}${projectName}/.gitignore`,
+		);
 
 		await fsPromises.writeFile(`${projectPath}${projectName}/README.md`, `#${projectName}`, "utf-8");
 
