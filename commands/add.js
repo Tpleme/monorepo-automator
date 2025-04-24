@@ -8,6 +8,7 @@ import { select } from "../utils/SelectPrompt.js";
 import SelectOptions from "../data/SelectOptions.js";
 import { addScriptToPackageJson, appendToFile, buildPackageScripts } from "../utils/AppendToFile.js";
 import { configText } from "../filesTemplate/viteconfig.js";
+import { indexTags } from "../filesTemplate/indexConfig.js";
 
 const okStyle = chalk.green.bold;
 const errorStyle = chalk.red.bold;
@@ -150,6 +151,13 @@ export default async (cmd, opts) => {
 			//create env files
 			await fsPromises.writeFile(`${appPath}${appName}/envDir/.env.production`, "", "utf-8");
 			await fsPromises.writeFile(`${appPath}${appName}/envDir/.env.development`, "", "utf-8");
+
+			//Update index file
+			const indexContent = await fsPromises.readFile(`${appPath}${appName}/index.html`, "utf-8");
+
+			const indexReplacedTags = indexContent.replace('<meta charset="UTF-8" />', indexTags);
+
+			await fsPromises.writeFile(`${appPath}${appName}/index.html`, indexReplacedTags);
 		} else {
 			startAnimation();
 
@@ -169,6 +177,9 @@ export default async (cmd, opts) => {
 			//create index.js file
 			await fsPromises.writeFile(`${appPath}${appName}/index.js`, `//${appName} entry file`, "utf-8");
 		}
+
+		//Create rsync file
+		await fsPromises.copyFile(`${appPath}/filesTemplate/rsync-ignore.txt`, `${appPath}${appName}/rsync-ignore.txt`);
 
 		stopAnimation();
 		console.log(okStyle(`\r✅ ${appName} app created`));

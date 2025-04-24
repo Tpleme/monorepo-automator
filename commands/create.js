@@ -6,8 +6,10 @@ import { startAnimation, stopAnimation, setMessage } from "../utils/TerminalLoad
 import chalk from "chalk";
 import { select } from "../utils/SelectPrompt.js";
 import SelectOptions from "../data/SelectOptions.js";
-import { appendToFile, buildPackageScripts } from "../utils/AppendToFile.js";
+import { appendToFile } from "../utils/AppendToFile.js";
 import { configText } from "../filesTemplate/viteconfig.js";
+import { buildJob, checkAppVersionJob } from "../filesTemplate/workflowTemplate.js";
+import { indexTags } from "../filesTemplate/indexConfig.js";
 
 const okStyle = chalk.green.bold;
 const errorStyle = chalk.red.bold;
@@ -158,6 +160,10 @@ export default async (cmd, opts, appDir) => {
 					await fsPromises.rm(`${app.path}/.eslintrc.cjs`);
 				}
 
+				if (existsSync(`${app.path}/eslint.config.js`)) {
+					await fsPromises.rm(`${app.path}/eslint.config.js`);
+				}
+
 				if (existsSync(`${app.path}/README.md`)) {
 					await fsPromises.rm(`${app.path}/README.md`);
 				}
@@ -166,16 +172,20 @@ export default async (cmd, opts, appDir) => {
 					await fsPromises.rm(`${app.path}/.gitignore`);
 				}
 
+				runCommandOnFolder(
+					app.path,
+					"npm uninstall --save-dev @eslint/js eslint eslint-plugin-react-hooks eslint-plugin-react-refresh",
+				);
+
 				setMessage(`Creating ${app.name} - Setting package.json scripts`);
 				//change package.json scripts, vite config and create envDir
 				const contents = await fsPromises.readFile(`${app.path}/package.json`, "utf-8");
+
 				const replacement = contents
 					.replace(/"dev": "vite"/, `"dev": "vite --open --port ${app.port}"`)
-					.replace(/"lint": "eslint ./, "");
+					.replace(/"lint": "eslint ."/, `"lint":""`);
 
 				await fsPromises.writeFile(`${app.path}/package.json`, replacement);
-
-				// await buildPackageScripts(`${app.path}/package.json`);
 
 				//update vite config file
 				setMessage(`Creating ${app.name} - Updating vite config`);
@@ -190,16 +200,14 @@ export default async (cmd, opts, appDir) => {
 				setMessage(`Creating ${app.name} - Setup env folder and files`);
 				await createDirectory(`${app.path}/envDir`);
 
-				const serverAppNames = ["server", "api"];
-
 				const devAppsURLS = apps.map(app => {
-					if (serverAppNames.includes(app.name)) {
+					if (app.devEnv === "none") {
 						return `${app.name.toUpperCase()}_URL=http://localhost:${app.port}`;
 					}
 				});
 
 				const prodAppsURLS = apps.map(app => {
-					if (serverAppNames.includes(app.name)) {
+					if (app.devEnv === "none") {
 						return `${app.name.toUpperCase()}_URL=https://${app.domain ?? ""}`;
 					}
 				});
@@ -208,17 +216,28 @@ export default async (cmd, opts, appDir) => {
 				await fsPromises.writeFile(`${app.path}/envDir/.env.development`, devAppsURLS.join("\n"), "utf-8");
 				await fsPromises.writeFile(`${app.path}/envDir/.env.production`, prodAppsURLS.join("\n"), "utf-8");
 
+				//Create rsync file
+				await fsPromises.copyFile(`${appDir}/filesTemplate/rsync-ignore.txt`, `${app.path}/rsync-ignore.txt`);
+
+				//Update index file
+				const indexContent = await fsPromises.readFile(`${app.path}/index.html`, "utf-8");
+
+				const indexReplacedTags = indexContent.replace('<meta charset="UTF-8" />', indexTags);
+
+				await fsPromises.writeFile(`${app.path}/index.html`, indexReplacedTags);
+
 				continue;
 			}
 
 			//create server folder
 			setMessage(`Creating ${app.name}`);
-			await createDirectory(`${app.path}`);
+			await createDirectory(app.path);
 
 			//init npm
 			setMessage(`Creating ${app.name} - Initializing npm`);
 			await runCommandOnFolder(`${app.path}`, "npm init -y");
 
+			setMessage(`Creating ${app.name} - Setup env files`);
 			//create index.js file
 			await fsPromises.writeFile(`${app.path}/index.js`, `//${app.name} entry file`, "utf-8");
 
@@ -228,6 +247,9 @@ export default async (cmd, opts, appDir) => {
 			//create env files
 			await fsPromises.writeFile(`${app.path}/.env.development`, devAppsURLS.join("\n"), "utf-8");
 			await fsPromises.writeFile(`${app.path}/.env.production`, prodAppsURLS.join("\n"), "utf-8");
+
+			//Create rsync file
+			await fsPromises.copyFile(`${appDir}/filesTemplate/rsync-ignore.txt`, `${app.path}/rsync-ignore.txt`);
 		}
 
 		//install biome
@@ -267,6 +289,32 @@ export default async (cmd, opts, appDir) => {
 		);
 
 		await fsPromises.writeFile(`${projectPath}${projectName}/package.json`, replacement);
+
+		setMessage("Creating github workflows");
+		//criar github workflows
+		await runCommandOnFolder(`${projectPath}${projectName}`, "mkdir .github");
+		await runCommandOnFolder(`${projectPath}${projectName}/.github`, "mkdir workflows");
+
+		await fsPromises.copyFile(
+			`${appDir}/filesTemplate/code-quality.yml`,
+			`${projectPath}${projectName}/.github/workflows/code-quality.yml`,
+		);
+		await fsPromises.copyFile(
+			`${appDir}/filesTemplate/build_prod_template.yml`,
+			`${projectPath}${projectName}/.github/workflows/build-prod.yml`,
+		);
+
+		const checkVersionJobs = checkAppVersionJob(apps);
+		let buildJobs = "";
+
+		for (const app of apps) {
+			buildJobs += buildJob(app, app.devEnv !== "none");
+		}
+
+		await fsPromises.appendFile(
+			`${projectPath}${projectName}/.github/workflows/build-prod.yml`,
+			checkVersionJobs + buildJobs,
+		);
 	} catch (err) {
 		handleError(err, `${projectPath}${projectName}`);
 		return;

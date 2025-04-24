@@ -1,0 +1,7 @@
+rsync-ignore.txt
+resources
+yarn.lock
+.env
+node_modules
+robots.txt
+.user.ini

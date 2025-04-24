@@ -1,0 +1,25 @@
+name: Generate a build and deploy to production
+run-name: ${{ github.actor }} is deploying to production
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+
+  quality:
+    runs-on: ubuntu-latest
+    name: Check format and lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v1
+        with:
+          version: latest
+      - name: Run Biome
+        run: biome ci .

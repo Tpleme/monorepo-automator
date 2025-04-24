@@ -4,8 +4,6 @@ import create from "./commands/create.js";
 import add from "./commands/add.js";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-//TODO: add github workflow code-quality
-//TODO: add extra tags to index.html
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
 
